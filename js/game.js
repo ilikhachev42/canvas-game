@@ -15,47 +15,30 @@ canvas.height = 768
 ctx.fillStyle = 'white'
 ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-class Enemy {
-    constructor({position = {x: 0, y: 0}}) {
-        this.position = position
-        this.width = 64
-        this.height = 64
-        this.waypointIndex = 0
-    }
+const placementTilesData2D = []
 
-    draw() {
-        ctx.fillStyle = 'rgb(0, 255, 0)'
-        ctx.fillRect(this.position.x, this.position.y , this.width, this.height)
-    }
-
-    update() {
-        this.draw();
-        const waypoint = waypoints[this.waypointIndex];
-        const yDistance = waypoint.y - this.position.y;
-        const xDistance = waypoint.x - this.position.x;
-        const yDirection = Math.sign(yDistance);
-        const xDirection = Math.sign(xDistance);
-        const enemySpeed = 1;
-        
-        
-        if (yDistance !== 0) {
-          this.position.y += yDirection * enemySpeed;
-        }
-        
-        if (xDistance !== 0 && yDistance === 0) {
-          this.position.x += xDirection * enemySpeed;
-        }
-        
-        if (
-          Math.round(this.position.x) === Math.round(waypoint.x) &&
-          Math.round(this.position.y) === Math.round(waypoint.y) &&
-          this.waypointIndex < waypoints.length - 1
-        ) {
-          this.waypointIndex++;
-        }
-      }
-      
+for (let i = 0; i < placementTilesData.length; i += 16) {
+  placementTilesData2D.push(placementTilesData.slice(i, i + 16))
 }
+
+const placementTiles = []
+
+placementTilesData2D.forEach((row, y) => {
+  row.forEach((symbol, x) => {
+    if (symbol === 193) {
+      placementTiles.push(
+        new PlacementTile({
+          position: {
+            x: x * 64,
+            y: y * 64
+          }
+        })
+      )
+    }
+  })
+})
+
+console.log(placementTiles)
 
 const enemies = []
 for (let i = 0; i < 10; i++) {
@@ -67,15 +50,67 @@ for (let i = 0; i < 10; i++) {
     )
 }
 
-const enemy = new Enemy({position: {x: waypoints[0].x, y: waypoints[0].y}})
-const enemy2 = new Enemy({position: {x: waypoints[0].x, y: waypoints[0].y - 128}})
+const buildings = []
+let activeTile = undefined
 
 function animate () {
     requestAnimationFrame(animate)
 
     ctx.drawImage(mapImage, 0, 0)
-    enemies.forEach(enemy => {
+    enemies.forEach((enemy) => {
         enemy.update()
+    })
+
+    placementTiles.forEach((tile) => {
+      tile.update(mouse)
+    })
+
+    buildings.forEach((building) => {
+      building.draw()
+
+      building.projectiles.forEach(projectile => {
+        projectile.update()
+      })
     })
 }
 
+const mouse = {
+  x: undefined,
+  y: undefined
+}
+
+canvas.addEventListener('click', (event) => {
+  if (activeTile && !activeTile.isOccupied) {
+    buildings.push(
+      new Building({
+        position: {
+          x: activeTile.position.x,
+          y: activeTile.position.y
+        }
+      })
+    )
+    activeTile.isOccupied = true
+  }
+  console.log(Building)
+})
+
+window.addEventListener('mousemove', (event) => {
+  mouse.x = event.clientX
+  mouse.y = event.clientY
+
+  activeTile = null
+  for (let i = 0; i < placementTiles.length; i++) {
+    const tile = placementTiles[i]
+    if (
+      mouse.x > tile.position.x && 
+      mouse.x < tile.position.x + tile.size &&
+      mouse.y > tile.position.y &&
+      mouse.y < tile.position.y + tile.size
+      ) {
+      activeTile = tile
+      break
+    }
+  }
+
+  console.log(activeTile)
+})
