@@ -38,40 +38,96 @@ placementTilesData2D.forEach((row, y) => {
   })
 })
 
-console.log(placementTiles)
-
 const enemies = []
-for (let i = 0; i < 10; i++) {
+
+function spawnEnemies(spawnCount) {
+  for (let i = 1; i < spawnCount + 1; i++) {
     const yOffset = i * 90
     enemies.push(
         new Enemy({
             position: {x: waypoints[0].x, y: waypoints[0].y - yOffset}
         })
     )
+  }
 }
 
 const buildings = []
 let activeTile = undefined
+let enemyCount = 10
+let hp = 20
+spawnEnemies(enemyCount)
 
 function animate () {
-    requestAnimationFrame(animate)
+  const animationId = requestAnimationFrame(animate)
 
-    ctx.drawImage(mapImage, 0, 0)
-    enemies.forEach((enemy) => {
-        enemy.update()
+  ctx.drawImage(mapImage, 0, 0)
+
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const enemy = enemies[i]
+    enemy.update()
+
+    // fix finish routing later
+
+  if (enemy.waypointIndex >= waypoints.length - 1) {
+    hp -= 2
+    enemies.splice(i, 1)
+    console.log(hp)
+
+    if (hp === 0) {
+      console.log('Game is over')
+      cancelAnimationFrame(animationId)
+      document.querySelector('#gameOver').style.display = 'flex'
+    } 
+  }
+}
+
+//spawn new wave enemies
+
+if (enemies.length === 0) {
+  enemyCount += 5
+  spawnEnemies(enemyCount) 
+}
+
+  placementTiles.forEach((tile) => {
+    tile.update(mouse)
+  })
+
+  buildings.forEach((building) => {
+    building.update()
+    building.target = null
+
+    const validEnemies = enemies.filter(enemy => {
+      const xDistance = enemy.center.x - building.center.x
+      const yDistance = enemy.center.y - building.center.y
+      const distance = Math.hypot(xDistance, yDistance)
+      return distance < enemy.radius + building.radius
     })
+    building.target = validEnemies[0]
 
-    placementTiles.forEach((tile) => {
-      tile.update(mouse)
-    })
+    for (let i = building.projectiles.length - 1; i >= 0; i--) {
+      const projectile = building.projectiles[i]
 
-    buildings.forEach((building) => {
-      building.draw()
+      projectile.update()
+      const xDistance = projectile.enemy.center.x - projectile.position.x
+      const yDistance = projectile.enemy.center.y - projectile.position.y
+      const distance = Math.hypot(xDistance, yDistance)
+      
+      //projectiles hits the enemy
+      if (distance < projectile.enemy.radius + projectile.radius) {
+        //enemy gets killed
+        projectile.enemy.health -= 20
+        if (projectile.enemy.health <= 0) {
+          const enemyIndex = enemies.findIndex((enemy) => {
+            return projectile.enemy === enemy
+          })
+          if (enemyIndex > -1) enemies.splice(enemyIndex, 1)
+        }
 
-      building.projectiles.forEach(projectile => {
-        projectile.update()
-      })
-    })
+
+        building.projectiles.splice(i, 1)
+    }
+    }
+  })
 }
 
 const mouse = {
@@ -91,7 +147,6 @@ canvas.addEventListener('click', (event) => {
     )
     activeTile.isOccupied = true
   }
-  console.log(Building)
 })
 
 window.addEventListener('mousemove', (event) => {
@@ -111,6 +166,4 @@ window.addEventListener('mousemove', (event) => {
       break
     }
   }
-
-  console.log(activeTile)
 })
