@@ -20,7 +20,6 @@ class PlacementTile {
       mouse.y > this.position.y &&
       mouse.y < this.position.y + this.size
       ) {
-        console.log('it works!')
         this.color = 'rgba(255, 255, 255, 0.3)'
     } else this.color = 'rgba(255, 255, 255, 0)'
   }
@@ -36,78 +35,118 @@ class Enemy {
       x: this.position.x + this.width / 2,
       y: this.position.y + this.height / 2
     }
-  }
-
-  draw() {
-    ctx.fillStyle = 'rgba(0, 255, 0, 0.4)'
-    ctx.fillRect(this.position.x, this.position.y , this.width, this.height)
-  }
-
-  update() {
-    this.draw();
-    const waypoint = waypoints[this.waypointIndex];
-    const yDistance = waypoint.y - this.position.y;
-    const xDistance = waypoint.x - this.position.x;
-    const yDirection = Math.sign(yDistance);
-    const xDirection = Math.sign(xDistance);
-    const enemySpeed = 1;
-    
-    
-    if (yDistance !== 0) {
-      this.position.y += yDirection * enemySpeed;
-    }
-    
-    if (xDistance !== 0 && yDistance === 0) {
-      this.position.x += xDirection * enemySpeed;
-    }
-    
-    if (
-      Math.round(this.position.x) === Math.round(waypoint.x) &&
-      Math.round(this.position.y) === Math.round(waypoint.y) &&
-      this.waypointIndex < waypoints.length - 1
-      ) {
-      this.waypointIndex++;
-      }
-  }  
-}
-
-class Building {
-    constructor({position = {x: 0, y: 0}}) {
-      this.position = position
-      this.width = 64
-      this.height = 64
-      this.center = {
-        x: this.position.x + this.width / 2,
-        y: this.position.y + this.height / 2
-      }
-      this.projectiles = [
-        new Projectile({
-          position: {
-            x: this.center.x, 
-            y: this.center.y
-          }
-        })
-      ]
-    }
-
-    draw() {
-      ctx.fillStyle = 'rgba(255, 255, 0, 0.5)'
-      ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
-    }
-}
-
-class Projectile {
-  constructor({position = {x: 0, y: 0}}) {
-    this.position = position
+    this.radius = 32
+    this.health = 100
     this.velocity = {
       x: 0,
       y: 0
     }
   }
+
+  draw() {
+    ctx.fillStyle = 'rgba(0, 255, 0, 0.4)'
+    // ctx.fillRect(this.position.x, this.position.y , this.width, this.height)
+    ctx.beginPath()
+    ctx.arc(this.center.x, this.center.y, this.radius, 0, Math.PI * 2)
+    ctx.fill()
+
+    //health bar
+
+    ctx.fillStyle = 'red'
+    ctx.fillRect(this.position.x, this.position.y - 15, this.width, 10)
+
+    ctx.fillStyle = 'green'
+    ctx.fillRect(this.position.x, this.position.y - 15, this.width * this.health / 100, 10)
+  }
+
+  update() {
+    this.draw();
+    const waypoint = waypoints[this.waypointIndex]
+    const yDistance = waypoint.y - this.center.y
+    const xDistance = waypoint.x - this.center.x
+    const angle = Math.atan2(yDistance, xDistance)
+
+    const speed = 2
+
+    this.velocity.x = Math.cos(angle) * speed
+    this.velocity.y = Math.sin(angle) * speed
+
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
+    this.center = {
+      x: this.position.x + this.width / 2,
+      y: this.position.y + this.height / 2
+    }
+
+    if (
+      Math.abs(Math.round(this.center.x) - Math.round(waypoint.x)) < 
+      Math.abs(this.velocity.x) &&
+      Math.abs(Math.round(this.center.y) - Math.round(waypoint.y)) <
+      Math.abs(this.velocity.y) &&
+      this.waypointIndex < waypoints.length - 1
+    ) {
+      this.waypointIndex++
+    }
+  }  
+}
+
+class Building {
+  constructor({position = {x: 0, y: 0}}) {
+    this.position = position
+    this.width = 64
+    this.height = 64
+    this.center = {
+      x: this.position.x + this.width / 2,
+      y: this.position.y + this.height / 2
+    }
+    this.projectiles = []
+    this.radius = 250
+    this.target
+    this.frames = 0
+  }
+
+  draw() {
+    ctx.fillStyle = 'rgba(255, 255, 0, 0.5)'
+    ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
+
+    ctx.beginPath()
+    ctx.arc(this.center.x, this.center.y, this.radius, 0, Math.PI * 2)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0)'
+    ctx.fill()
+  }
+
+  update() {
+    this.draw()
+    if (this.frames % 100 === 0 && this.target) {
+      this.projectiles.push(
+        new Projectile({
+          position: {
+            x: this.center.x, 
+            y: this.center.y
+          },
+          enemy: this.target
+        })
+      )
+    }
+
+    this.frames++
+  }
+}
+
+class Projectile {
+  constructor({position = {x: 0, y: 0}, enemy}) {
+    this.position = position
+    this.velocity = {
+      x: 0,
+      y: 0
+    }
+    this.radius = 10
+    this.enemy = enemy
+  }
   
   draw() {
     ctx.beginPath()
-    ctx.arc(this.position.x, this.position.y, 10, 0 , Math.PI * 2)
+    ctx.arc(this.position.x, this.position.y, this.radius, 0 , Math.PI * 2)
     ctx.fillStyle = 'red'
     ctx.fill()
   }
@@ -116,12 +155,13 @@ class Projectile {
     this.draw()
 
     const angle = Math.atan2(
-      enemies[0].position.y - this.position.y,
-      enemies[0].position.x - this.position.x
+      this.enemy.center.y - this.position.y,
+      this.enemy.center.x - this.position.x
       )
 
-      this.velocity.x = Math.cos(angle)
-      this.velocity.y = Math.sin(angle)
+      const power = 5
+      this.velocity.x = Math.cos(angle) * power
+      this.velocity.y = Math.sin(angle) * power
 
       this.position.x += this.velocity.x
       this.position.y += this.velocity.y
