@@ -7,9 +7,9 @@ mapImage.onload = () => {
     animate()
 }
 
-mapImage.src = 'textures/map.png'
+mapImage.src = 'sprites/map.png'
 
-canvas.width = 1024
+canvas.width = 1280
 canvas.height = 768
 
 ctx.fillStyle = 'white'
@@ -17,15 +17,15 @@ ctx.fillRect(0, 0, canvas.width, canvas.height)
 
 const placementTilesData2D = []
 
-for (let i = 0; i < placementTilesData.length; i += 16) {
-  placementTilesData2D.push(placementTilesData.slice(i, i + 16))
+for (let i = 0; i < placementTilesData.length; i += 20) {
+  placementTilesData2D.push(placementTilesData.slice(i, i + 20))
 }
 
 const placementTiles = []
 
 placementTilesData2D.forEach((row, y) => {
   row.forEach((symbol, x) => {
-    if (symbol === 193) {
+    if (symbol === 648) {
       placementTiles.push(
         new PlacementTile({
           position: {
@@ -40,12 +40,14 @@ placementTilesData2D.forEach((row, y) => {
 
 const enemies = []
 
-function spawnEnemies(spawnCount) {
+//fix spawn position later
+
+function spawnEnemies(spawnCount) { 
   for (let i = 1; i < spawnCount + 1; i++) {
     const yOffset = i * 90
     enemies.push(
-        new Enemy({
-            position: {x: waypoints[0].x, y: waypoints[0].y - yOffset}
+      new Enemy({
+            position: {x: waypoints[0].x - 30, y: waypoints[0].y - 50 - yOffset}
         })
     )
   }
@@ -55,6 +57,7 @@ const buildings = []
 let activeTile = undefined
 let enemyCount = 10
 let hp = 20
+let gold = 100
 spawnEnemies(enemyCount)
 
 function animate () {
@@ -71,7 +74,7 @@ function animate () {
   if (enemy.waypointIndex >= waypoints.length - 1) {
     hp -= 2
     enemies.splice(i, 1)
-    console.log(hp)
+    document.querySelector('#hp').innerHTML = hp
 
     if (hp === 0) {
       console.log('Game is over')
@@ -113,18 +116,20 @@ if (enemies.length === 0) {
       const distance = Math.hypot(xDistance, yDistance)
       
       //projectiles hits the enemy
-      if (distance < projectile.enemy.radius + projectile.radius) {
-        //enemy gets killed
-        projectile.enemy.health -= 20
-        if (projectile.enemy.health <= 0) {
-          const enemyIndex = enemies.findIndex((enemy) => {
-            return projectile.enemy === enemy
-          })
-          if (enemyIndex > -1) enemies.splice(enemyIndex, 1)
+    if (distance < projectile.enemy.radius + projectile.radius) {
+      //enemy gets killed
+      projectile.enemy.health -= 20
+      if (projectile.enemy.health <= 0) {
+        const enemyIndex = enemies.findIndex((enemy) => {
+          return projectile.enemy === enemy
+        })
+        if (enemyIndex > -1) {
+          enemies.splice(enemyIndex, 1)
+          gold += 25
+          document.querySelector('#gold').innerHTML = gold
         }
-
-
-        building.projectiles.splice(i, 1)
+      }
+      building.projectiles.splice(i, 1)
     }
     }
   })
@@ -136,7 +141,9 @@ const mouse = {
 }
 
 canvas.addEventListener('click', (event) => {
-  if (activeTile && !activeTile.isOccupied) {
+  if (activeTile && !activeTile.isOccupied && gold - 50 >= 0) {
+    gold -= 50
+    document.querySelector('#gold').innerHTML = gold
     buildings.push(
       new Building({
         position: {
