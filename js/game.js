@@ -2,7 +2,6 @@ const canvas = document.querySelector('canvas')
 const ctx = canvas.getContext('2d')
 const mapImage = new Image()
 
-
 mapImage.onload = () => {
     animate()
 }
@@ -11,9 +10,6 @@ mapImage.src = 'sprites/map.png'
 
 canvas.width = 1280
 canvas.height = 768
-
-ctx.fillStyle = 'white'
-ctx.fillRect(0, 0, canvas.width, canvas.height)
 
 const placementTilesData2D = []
 
@@ -40,16 +36,17 @@ placementTilesData2D.forEach((row, y) => {
 
 const enemies = []
 
-//fix spawn position later
-
-function spawnEnemies(spawnCount) { 
-  for (let i = 1; i < spawnCount + 1; i++) {
-    const yOffset = i * 90
-    enemies.push(
-      new Enemy({
-            position: {x: waypoints[0].x - 30, y: waypoints[0].y - 50 - yOffset}
+function spawnEnemies(spawnCount) {
+  let delay = 0;
+  for (let i = 0; i < spawnCount; i++) {
+    setTimeout(function() {
+      enemies.push(
+        new Enemy({
+          position: { x: waypoints[0].x - 30, y: waypoints[0].y - 30 },
         })
-    )
+      );
+    }, delay);
+    delay += 700;
   }
 }
 
