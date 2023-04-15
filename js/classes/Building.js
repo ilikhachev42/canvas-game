@@ -1,6 +1,8 @@
 class Building {
   constructor({position = {x: 0, y: 0}}) {
     this.position = position
+    this.image = new Image()
+    this.image.src = 'sprites/Tower 02.png'
     this.width = 64
     this.height = 64
     this.center = {
@@ -14,8 +16,10 @@ class Building {
   }
 
   draw() {
-    ctx.fillStyle = 'rgba(255, 255, 0, 0.5)'
-    ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
+    ctx.drawImage(this.image, 0, 82, 64, 110, this.position.x, this.position.y - 18, 64, 82)
+
+    // ctx.fillStyle = 'rgba(255, 255, 0, 0.5)'
+    // ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
 
     ctx.beginPath()
     ctx.arc(this.center.x, this.center.y, this.radius, 0, Math.PI * 2)
