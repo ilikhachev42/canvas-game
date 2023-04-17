@@ -55,6 +55,7 @@ let activeTile = undefined
 let enemyCount = 10
 let hp = 20
 let gold = 100
+const explosions = []
 spawnEnemies(enemyCount)
 
 function animate () {
@@ -78,6 +79,16 @@ function animate () {
       cancelAnimationFrame(animationId)
       document.querySelector('#gameOver').style.display = 'flex'
     } 
+  }
+}
+
+for (let i = explosions.length - 1; i >= 0; i--) {
+  const explosion = explosions[i]
+  explosion.draw()
+  explosion.update()
+
+  if (explosion.framesX.current >= explosion.framesX.max - 1) {
+    explosions.splice(i, 1)
   }
 }
 
@@ -126,6 +137,13 @@ if (enemies.length === 0) {
           document.querySelector('#gold').innerHTML = gold
         }
       }
+      explosions.push(
+        new Sprite({
+          position: { x: projectile.position.x, y: projectile.position.y }, 
+          imageSrc: 'sprites/Tower 02 - Level 01 - Projectile - Impact.png', 
+          frames: {  x: 5, y: 1 }
+        })
+      )
       building.projectiles.splice(i, 1)
     }
     }
@@ -150,6 +168,9 @@ canvas.addEventListener('click', (event) => {
       })
     )
     activeTile.isOccupied = true
+    buildings.sort((a, b) => {
+      return a.position.y - b.position.y
+    })
   }
 })
 
@@ -171,3 +192,5 @@ window.addEventListener('mousemove', (event) => {
     }
   }
 })
+
+console.log(enemies)
