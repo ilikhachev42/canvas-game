@@ -57,9 +57,34 @@ class Sprite {
 
  // function for animating sprites ONLY for Enemy class.
   enemyUpdate() {
-    this.framesX.current++;
+    this.framesX.elapsed++
+    if (this.framesX.elapsed % this.framesX.hold === 0) {
+      this.framesX.current++
     if (this.framesX.current >= this.framesX.max) {
       this.framesX.current = 0;
+    } else if (this.waypointIndex == 1) {
+      this.framesY.current = 0 
+    } else if (this.waypointIndex == 2) {
+      this.framesY.current = 2
+    } else if (this.waypointIndex == 3) {
+      this.framesY.current = 1
+    } else if (this.waypointIndex == 4) {
+      this.framesY.current = 2
+    } else if (this.waypointIndex == 5) {
+      this.framesY.current = 0
+    } else if (this.waypointIndex == 6) {
+      this.framesY.current = 2
+    } else if (this.waypointIndex == 7) {
+      this.framesY.current = 1
+    } else if (this.waypointIndex == 8) {
+      this.framesY.current = 2
+    } else if (this.waypointIndex == 9) {
+      this.framesY.current = 0
+    } else if (this.waypointIndex == 10) {
+      this.framesY.current = 2
+    } else if (this.waypointIndex == 11) {
+      this.framesY.current = 1
+    }
     }
   }
 }
