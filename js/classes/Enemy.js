@@ -1,5 +1,13 @@
-class Enemy {
+class Enemy extends Sprite {
   constructor({position = {x: 0, y: 0}}) {
+    super({
+      position, 
+      imageSrc: 'sprites/Firebug.png', 
+      frames: {
+        x: 8,
+        y: 3
+      }
+    })
     this.position = position
     this.width = 64
     this.height = 64
@@ -17,23 +25,19 @@ class Enemy {
   }
 
   draw() {
-    ctx.fillStyle = 'rgba(0, 255, 0, 0.4)'
-    // ctx.fillRect(this.position.x, this.position.y , this.width, this.height)
-    ctx.beginPath()
-    ctx.arc(this.center.x, this.center.y, this.radius, 0, Math.PI * 2)
-    ctx.fill()
+    super.draw()
 
-    //health bar
+    // //health bar
+    // ctx.fillStyle = 'red'
+    // ctx.fillRect(this.position.x, this.position.y - 15, this.width, 10)
 
-    ctx.fillStyle = 'red'
-    ctx.fillRect(this.position.x, this.position.y - 15, this.width, 10)
-
-    ctx.fillStyle = 'green'
-    ctx.fillRect(this.position.x, this.position.y - 15, this.width * this.health / 100, 10)
+    // ctx.fillStyle = 'green'
+    // ctx.fillRect(this.position.x, this.position.y - 15, this.width * this.health / 100, 10)
   }
 
   update() {
     this.draw();
+    super.enemyUpdate()
     const waypoint = waypoints[this.waypointIndex]
     const yDistance = waypoint.y - this.center.y
     const xDistance = waypoint.x - this.center.x
